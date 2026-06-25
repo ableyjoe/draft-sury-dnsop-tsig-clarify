@@ -2,16 +2,23 @@
 
 
 
-WG Working Group                                              Y. N. Here
-Internet-Draft                                    Your Organization Here
-Intended status: Informational                              25 June 2026
-Expires: 27 December 2026
+Domain Name System Operations                                    O. Sury
+Internet-Draft                                                       ISC
+Updates: RFC8945 (if approved)                                  J. Abley
+Intended status: Standards Track                              Cloudflare
+Expires: 27 December 2026                                   25 June 2026
 
 
-                           TODO - Your title
-                  draft-todo-yourname-protocol-latest
+       Handling Verification Failures of TSIG-Signed DNS Messages
+                  draft-sury-dnsop-tsig-clarify-latest
 
 Abstract
+
+   Transation Signatures (TSIG) provide a standard mechanism to sign DNS
+   messages, so that the authenticity of messages can be verified by the
+   system that receives them.  This document updates the required
+   behaviour of a system that receives a signed message that fails
+   verification.
 
    TODO Abstract
 
@@ -20,16 +27,18 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at
-   https://example.com/LATEST.  Status information for this document may
-   be found at https://datatracker.ietf.org/doc/draft-todo-yourname-
-   protocol/.
+   https://ableyjoe.github.io/draft-sury-dnsop-tsig-clarify/draft-sury-
+   dnsop-tsig-clarify.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-sury-dnsop-tsig-
+   clarify/.
 
-   Discussion of this document takes place on the WG Working Group
-   mailing list (mailto:WG@example.com), which is archived at
-   https://example.com/WG.
+   Discussion of this document takes place on the Domain Name System
+   Operations Working Group mailing list (mailto:dnsop@ietf.org), which
+   is archived at https://mailarchive.ietf.org/arch/browse/dnsop/.
+   Subscribe at https://www.ietf.org/mailman/listinfo/dnsop/.
 
    Source for this draft and an issue tracker can be found at
-   https://github.com/USER/REPO.
+   https://github.com/ableyjoe/draft-sury-dnsop-tsig-clarify.
 
 Status of This Memo
 
@@ -65,18 +74,32 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-   2.  Conventions and Definitions
-   3.  Security Considerations
-   4.  IANA Considerations
-   5.  Normative References
+   2.  Terminology
+   3.  Processing of Signed Responses
+   4.  Security Considerations
+   5.  IANA Considerations
+   6.  Introduction
+   7.  Conventions and Definitions
+   8.  Security Considerations
+   9.  IANA Considerations
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
    Acknowledgments
-   Author's Address
+   Acknowledgments
+   Authors' Addresses
 
 1.  Introduction
 
-   TODO Introduction
+   Transaction Signatures are specified in [RFC8945] and provides a
+   mechanism for transaction-level authentication of DNS messages using
+   shared secrets and one-way hash functions.  It can be used to
+   authenticate messages exchanged between DNS clients and servers, e.g.
+   in cases where message integrity and authorisation are important,
+   such as DNS Update [RFC2136] and the DNS Zone Transfer Protocol
+   [RFC5936].
 
-2.  Conventions and Definitions
+2.  Terminology
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
@@ -84,15 +107,70 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-3.  Security Considerations
+   This document assumes familiarity with terminology specific to the
+   Domain Name System (DNS) as described in [RFC9499].
 
-   TODO Security
+3.  Processing of Signed Responses
 
-4.  IANA Considerations
+   The processing of a signed response by a DNS client is described in
+   section 5.4 of [RFC8945], which includes the following in the case of
+   signed messages that fail verification:
+
+      Regardless of the RCODE, a message containing a TSIG RR that is
+      unsigned as specified in Section 5.3.2 or that fails verification
+      SHOULD NOT be considered an acceptable response, as it may have
+      been spoofed or manipulated.  Instead, the client SHOULD log an
+      error and continue to wait for a signed response until the request
+      times out.
+
+   If we assume that such a response is malicious, then the possible
+   attacks can be categorised as on-path or off-path.
+
+   In the case of an off-path attack, the specified behaviour is not
+   ideal since it provides an increased window of opportunity for an
+   attacker that has correctly guessed parameters such as source port
+   and query id to continue sending responses with different signatures.
+
+   In the case of an on-path attack, there is even less value in waiting
+   for a valid response.
+
+   This document updates the specification in this case to clarify that
+   clients that receive responses that fit the description quoted above
+   SHOULD log an error and MUST treat the message as corrupt, MUST
+   discard it immediately and MUST NOT continue to wait.
+
+4.  Security Considerations
+
+   This document updates [RFC8945] and provides new guidance in order to
+   mitigate on-path and off-path attacks on signed DNS responses.
+
+5.  IANA Considerations
 
    This document has no IANA actions.
 
-5.  Normative References
+6.  Introduction
+
+   TODO Introduction
+
+7.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+8.  Security Considerations
+
+   TODO Security
+
+9.  IANA Considerations
+
+   This document has no IANA actions.
+
+10.  References
+
+10.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -103,12 +181,48 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
+   [RFC8945]  Dupont, F., Morris, S., Vixie, P., Eastlake 3rd, D.,
+              Gudmundsson, O., and B. Wellington, "Secret Key
+              Transaction Authentication for DNS (TSIG)", STD 93,
+              RFC 8945, DOI 10.17487/RFC8945, November 2020,
+              <https://www.rfc-editor.org/rfc/rfc8945>.
+
+   [RFC9499]  Hoffman, P. and K. Fujiwara, "DNS Terminology", BCP 219,
+              RFC 9499, DOI 10.17487/RFC9499, March 2024,
+              <https://www.rfc-editor.org/rfc/rfc9499>.
+
+10.2.  Informative References
+
+   [RFC2136]  Vixie, P., Ed., Thomson, S., Rekhter, Y., and J. Bound,
+              "Dynamic Updates in the Domain Name System (DNS UPDATE)",
+              RFC 2136, DOI 10.17487/RFC2136, April 1997,
+              <https://www.rfc-editor.org/rfc/rfc2136>.
+
+   [RFC5936]  Lewis, E. and A. Hoenes, Ed., "DNS Zone Transfer Protocol
+              (AXFR)", RFC 5936, DOI 10.17487/RFC5936, June 2010,
+              <https://www.rfc-editor.org/rfc/rfc5936>.
+
 Acknowledgments
 
    TODO acknowledge.
 
-Author's Address
+   normative:
 
-   Your Name Here
-   Your Organization Here
-   Email: your.email@example.com
+   informative:
+
+   ...
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Authors' Addresses
+
+   Ondrej Sury
+   ISC
+   Email: ondrej@isc.org
+
+
+   Joe Abley
+   Cloudflare
+   Email: jabley@cloudflare.com
