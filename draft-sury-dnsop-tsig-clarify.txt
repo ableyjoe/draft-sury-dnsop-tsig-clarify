@@ -116,6 +116,16 @@ Table of Contents
       error and continue to wait for a signed response until the request
       times out.
 
+   There are basically two scenarios how such a message can be received
+   by client.  Either the server is misconfigured or the client is under
+   attack.
+
+   If we assume that such a response has been sent by misconfigured
+   server, e.g. server that doesn't have the correct TSIG keys or isn't
+   configured to use TSIG keys to sign messages to this particular
+   client then no amount of waiting will allow the DNS communication to
+   recover as the server will never send a correct message back.
+
    If we assume that such a response is malicious, then the possible
    attacks can be categorised as on-path or off-path.
 

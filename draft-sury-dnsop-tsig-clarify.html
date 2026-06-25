@@ -1244,9 +1244,17 @@ error and continue to wait for a signed response until the request
 times out.<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-3-3">If we assume that such a response is malicious, then the possible
-attacks can be categorised as on-path or off-path.<a href="#section-3-3" class="pilcrow">¶</a></p>
-<p id="section-3-4">In the case of an off-path attack, the specified behaviour is not
+<p id="section-3-3">There are basically two scenarios how such a message can be received
+by client.  Either the server is misconfigured or the client is
+under attack.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">If we assume that such a response has been sent by misconfigured server,
+e.g. server that doesn't have the correct TSIG keys or isn't configured
+to use TSIG keys to sign messages to this particular client then no amount
+of waiting will allow the DNS communication to recover as the server will
+never send a correct message back.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">If we assume that such a response is malicious, then the possible
+attacks can be categorised as on-path or off-path.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">In the case of an off-path attack, the specified behaviour is not
 ideal since it provides an increased window of opportunity for an
 attacker that has correctly guessed parameters such as source port
 and query id to continue sending responses with different signatures.
@@ -1254,11 +1262,11 @@ In the case of an on-path attack, there is even less value in waiting
 for a valid response, since the attacker can be assumed to have
 full control over what messages are and are not allowed to reach
 the client, and once again waiting only provides the attacker with
-more opportunity to conduct their attack.<a href="#section-3-4" class="pilcrow">¶</a></p>
-<p id="section-3-5">This document updates the specification in this case to clarify
+more opportunity to conduct their attack.<a href="#section-3-6" class="pilcrow">¶</a></p>
+<p id="section-3-7">This document updates the specification in this case to clarify
 that clients that receive responses that fit the description quoted
 above <span class="bcp14">SHOULD</span> log an error and <span class="bcp14">MUST</span> treat the message as corrupt,
-<span class="bcp14">MUST</span> discard it immediately and <span class="bcp14">MUST NOT</span> continue to wait.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST</span> discard it immediately and <span class="bcp14">MUST NOT</span> continue to wait.<a href="#section-3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security-considerations">
