@@ -85,9 +85,11 @@ In the case of an off-path attack, the specified behaviour is not
 ideal since it provides an increased window of opportunity for an
 attacker that has correctly guessed parameters such as source port
 and query id to continue sending responses with different signatures.
-
 In the case of an on-path attack, there is even less value in waiting
-for a valid response.
+for a valid response, since the attacker can be assumed to have
+full control over what messages are and are not allowed to reach
+the client, and once again waiting only provides the attacker with
+more opportunity to conduct their attack.
 
 This document updates the specification in this case to clarify
 that clients that receive responses that fit the description quoted
@@ -111,43 +113,3 @@ This document has no IANA actions.
 
 TODO acknowledge.
 
-
-normative:
-
-informative:
-
-...
-
---- abstract
-
-TODO Abstract
-
-
---- middle
-
-# Introduction
-
-TODO Introduction
-
-
-# Conventions and Definitions
-
-{::boilerplate bcp14-tagged}
-
-
-# Security Considerations
-
-TODO Security
-
-
-# IANA Considerations
-
-This document has no IANA actions.
-
-
---- back
-
-# Acknowledgments
-{:numbered="false"}
-
-TODO acknowledge.
