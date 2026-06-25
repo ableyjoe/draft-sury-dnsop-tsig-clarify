@@ -1,0 +1,203 @@
+
+
+
+
+Domain Name System Operations                                    O. Sury
+Internet-Draft                                                       ISC
+Updates: RFC8945 (if approved)                                  J. Abley
+Intended status: Standards Track                              Cloudflare
+Expires: 27 December 2026                                   25 June 2026
+
+
+       Handling Verification Failures of TSIG-Signed DNS Messages
+                  draft-sury-dnsop-tsig-clarify-latest
+
+Abstract
+
+   Transation Signatures (TSIG) provide a standard mechanism to sign DNS
+   messages, so that the authenticity of messages can be verified by the
+   system that receives them.  This document updates the required
+   behaviour of a system that receives a signed message that fails
+   verification.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at
+   https://ableyjoe.github.io/draft-sury-dnsop-tsig-clarify/draft-sury-
+   dnsop-tsig-clarify.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-sury-dnsop-tsig-
+   clarify/.
+
+   Discussion of this document takes place on the Domain Name System
+   Operations Working Group mailing list (mailto:dnsop@ietf.org), which
+   is archived at https://mailarchive.ietf.org/arch/browse/dnsop/.
+   Subscribe at https://www.ietf.org/mailman/listinfo/dnsop/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/ableyjoe/draft-sury-dnsop-tsig-clarify.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 27 December 2026.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Terminology
+   3.  Processing of Signed Responses
+   4.  Security Considerations
+   5.  IANA Considerations
+   6.  References
+     6.1.  Normative References
+     6.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   Transaction Signatures are specified in [RFC8945] and provides a
+   mechanism for transaction-level authentication of DNS messages using
+   shared secrets and one-way hash functions.  It can be used to
+   authenticate messages exchanged between DNS clients and servers, e.g.
+   in cases where message integrity and authorisation are important,
+   such as DNS Update [RFC2136] and the DNS Zone Transfer Protocol
+   [RFC5936].
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   This document assumes familiarity with terminology specific to the
+   Domain Name System (DNS) as described in [RFC9499].
+
+3.  Processing of Signed Responses
+
+   The processing of a signed response by a DNS client is described in
+   section 5.4 of [RFC8945], which includes the following in the case of
+   signed messages that fail verification:
+
+      Regardless of the RCODE, a message containing a TSIG RR that is
+      unsigned as specified in Section 5.3.2 or that fails verification
+      SHOULD NOT be considered an acceptable response, as it may have
+      been spoofed or manipulated.  Instead, the client SHOULD log an
+      error and continue to wait for a signed response until the request
+      times out.
+
+   There are basically two scenarios how such a message can be received
+   by client.  Either the server is misconfigured or the client is under
+   attack.
+
+   If we assume that such a response has been sent by misconfigured
+   server, e.g. server that doesn't have the correct TSIG keys or isn't
+   configured to use TSIG keys to sign messages to this particular
+   client then no amount of waiting will allow the DNS communication to
+   recover as the server will never send a correct message back.
+
+   If we assume that such a response is malicious, then the possible
+   attacks can be categorised as on-path or off-path.
+
+   In the case of an off-path attack, the specified behaviour is not
+   ideal since it provides an increased window of opportunity for an
+   attacker that has correctly guessed parameters such as source port
+   and query id to continue sending responses with different signatures.
+   In the case of an on-path attack, there is even less value in waiting
+   for a valid response, since the attacker can be assumed to have full
+   control over what messages are and are not allowed to reach the
+   client, and once again waiting only provides the attacker with more
+   opportunity to conduct their attack.
+
+   This document updates the specification in this case to clarify that
+   clients that receive responses that fit the description quoted above
+   SHOULD log an error and MUST treat the message as corrupt, MUST
+   discard it immediately and MUST NOT continue to wait.
+
+4.  Security Considerations
+
+   This document updates [RFC8945] and provides new guidance in order to
+   mitigate on-path and off-path attacks on signed DNS responses.
+
+5.  IANA Considerations
+
+   This document has no IANA actions.
+
+6.  References
+
+6.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC8945]  Dupont, F., Morris, S., Vixie, P., Eastlake 3rd, D.,
+              Gudmundsson, O., and B. Wellington, "Secret Key
+              Transaction Authentication for DNS (TSIG)", STD 93,
+              RFC 8945, DOI 10.17487/RFC8945, November 2020,
+              <https://www.rfc-editor.org/rfc/rfc8945>.
+
+   [RFC9499]  Hoffman, P. and K. Fujiwara, "DNS Terminology", BCP 219,
+              RFC 9499, DOI 10.17487/RFC9499, March 2024,
+              <https://www.rfc-editor.org/rfc/rfc9499>.
+
+6.2.  Informative References
+
+   [RFC2136]  Vixie, P., Ed., Thomson, S., Rekhter, Y., and J. Bound,
+              "Dynamic Updates in the Domain Name System (DNS UPDATE)",
+              RFC 2136, DOI 10.17487/RFC2136, April 1997,
+              <https://www.rfc-editor.org/rfc/rfc2136>.
+
+   [RFC5936]  Lewis, E. and A. Hoenes, Ed., "DNS Zone Transfer Protocol
+              (AXFR)", RFC 5936, DOI 10.17487/RFC5936, June 2010,
+              <https://www.rfc-editor.org/rfc/rfc5936>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Authors' Addresses
+
+   Ondrej Sury
+   ISC
+   Email: ondrej@isc.org
+
+
+   Joe Abley
+   Cloudflare
+   Email: jabley@cloudflare.com
